@@ -1,0 +1,220 @@
+# -----------------------------------------------------
+# Index a bulk of documents
+
+DELETE library
+
+POST library/books/_bulk
+{ "index" : { "_id" : 1}}
+{ "title" : "The quick brown fox", "price" : 19 }
+{ "index" : { "_id" : 2}}
+{ "title" : "The quick brown fox jumps over lazy dog", "price" : 16.5 }
+{ "index" : { "_id" : 3}}
+{ "title" : "The quick brown fox jumps over quick dog", "price" : 25.5 }
+{ "index" : { "_id" : 4}}
+{ "title" : "Brown fox brown dog", "price" : 9 }
+{ "index" : { "_id" : 5}}
+{ "title" : "Lazy dog", "price" : 19 }
+
+# Elastic search
+GET library/books/_search
+{
+  "query": {
+    ...
+  }
+}
+# -----------------------------------------------------
+# Search *all* item
+
+GET library/books/_search
+
+# Find all "fox" document
+GET library/books/_search
+{
+  "query": {
+    "match": {
+      "title": "fox"
+    }
+  }
+}
+
+# quick and dog
+GET library/books/_search
+{
+  "query": {
+    "match": {
+      "title": "quick dog"
+    }
+  }
+}
+
+# match phrase only
+GET library/books/_search
+{
+  "query": {
+    "match_phrase": {
+      "title": "quick dog"
+    }
+  }
+}
+
+# results are ranked by "relevance"
+# https://www.elastic.co/guide/en/elasticsearch/guide/master/relevance-intro.html
+
+# -----------------------------------------------------
+# Boolean combination of query
+
+# Template
+GET library/books/_search
+{
+  "query": {
+    "bool": {
+      ...
+    }
+  }
+}
+
+# Basic operation
+GET library/books/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {}
+      ],
+      "must_not": [
+        {}
+      ],
+      "should": [
+        {}
+      ]
+    }
+  }
+}
+
+# Example
+GET library/books/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "title": "quick"
+          }
+        },
+        {
+          "match_phrase": {
+            "title": "lazy dog"
+          }
+        }
+      ]
+    }
+  }
+}
+
+# Combination can be boosted for different effect
+GET library/books/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match_phrase": {
+            "title": {
+              "query" : "quick dog",
+              "boost": 0.5
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "title": "lazy dog"
+          }
+        }
+      ]
+    }
+  }
+}
+
+# High light the result
+GET library/books/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match_phrase": {
+            "title": {
+              "query" : "quick dog",
+              "boost": 0.5
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "title": "lazy dog"
+          }
+        }
+      ]
+    }
+  },
+  "highlight": {
+    "fields": {
+      "title": {}
+    }
+  }
+}
+
+# -----------------------------------------------------
+# Filtering query
+# Template
+GET library/books/_search
+{
+  "query": {
+    "filtered": {
+      "query": {},
+      "filter": {}
+    }
+  }
+}
+
+# Find all book costing more than $15
+GET library/books/_search
+{
+  "query": {
+    "filtered": {
+      "filter": {
+        "range": {
+          "price": {
+            "gt": 19
+          }
+        }
+      }
+    }
+  }
+}
+
+# Combine filter and query
+GET library/books/_search
+{
+  "query": {
+    "filtered": {
+      "query": {
+        "match": {
+          "title": "lazy dog"
+        }
+      },
+      "filter": {
+        "range": {
+          "price": {
+            "gte": 10
+          }
+        }
+      }
+    }
+  }
+}
+
+# More reference
+# https://www.elastic.co/guide/en/elasticsearch/guide/current/structured-search.html
+
