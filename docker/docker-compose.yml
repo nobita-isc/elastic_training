@@ -1,0 +1,13 @@
+elasticsearch:
+  image: elasticsearch
+  container_name: elastic_training
+  ports:
+    - 9200:9200
+
+kibana:
+  image: kibana
+  container_name: kibana_training
+  ports:
+    - 5601:5601
+  links:
+    - elasticsearch:elasticsearch
